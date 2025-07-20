@@ -53,8 +53,30 @@ namespace :gen do
     csr_dir = cfg_arch.path / "csr"
     ext_dir = cfg_arch.path / "ext"
 
+    # Process exception codes with ERB template resolution
+    resolved_exception_codes = []
+    cfg_arch.implemented_exception_codes.each do |ecode|
+      # Use Ruby's ERB processing to resolve any templates in the exception name
+      resolved_name = cfg_arch.render_erb(ecode.name, "exception code #{ecode.var}")
+
+      # Create sanitized name for C identifier
+      sanitized_name = resolved_name.downcase.gsub(/[^a-z0-9_]/, "_").gsub(/_+/, "_").gsub(/^_|_$/, "")
+
+      resolved_exception_codes << {
+        "num" => ecode.num,
+        "name" => resolved_name,
+        "sanitized_name" => sanitized_name,
+        "var" => ecode.var
+      }
+    end
+
+    # Write resolved exception codes to a temporary JSON file
+    require 'json'
+    resolved_codes_file = "#{output_dir}resolved_exception_codes.json"
+    File.write(resolved_codes_file, JSON.pretty_generate(resolved_exception_codes))
+
     # Run the C header generator script using the same Python environment
     # The script generates encoding.h for inclusion in C programs
-    sh "#{$root}/.home/.venv/bin/python3 #{$root}/backends/generators/c_header/generate_encoding.py --inst-dir=#{inst_dir} --csr-dir=#{csr_dir} --ext-dir=#{ext_dir} --output=#{output_dir}encoding.out.h --include-all"
+    sh "#{$root}/.home/.venv/bin/python3 #{$root}/backends/generators/c_header/generate_encoding.py --inst-dir=#{inst_dir} --csr-dir=#{csr_dir} --ext-dir=#{ext_dir} --resolved-codes=#{resolved_codes_file} --output=#{output_dir}encoding.out.h --include-all"
   end
 end
