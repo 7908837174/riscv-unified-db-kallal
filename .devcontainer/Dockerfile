@@ -42,8 +42,10 @@ RUN \
     ruby-dev \
     shellcheck
 
-# Fix PEP 668 issue by using --break-system-packages flag
-RUN pip3 install --break-system-packages -r /workspace/requirements.txt
+# Create a virtual environment and install Python requirements
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install -r /workspace/requirements.txt
 
 RUN apt-get clean autoclean
 RUN apt-get autoremove -y
