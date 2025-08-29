@@ -3,5 +3,7 @@
 npm i
 bundle install --verbose
 
-# Install Python packages with --break-system-packages flag to avoid PEP 668 error
-pip3 install --break-system-packages -r requirements.txt
+# Create a virtual environment and install Python requirements
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
