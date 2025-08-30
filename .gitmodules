@@ -17,3 +17,6 @@
 [submodule "ext/rbi-central"]
 	path = ext/rbi-central
 	url = https://github.com/Shopify/rbi-central
+[submodule "riscv-unified-db-kallal"]
+	path = riscv-unified-db-kallal
+	url = https://github.com/riscv-software-src/riscv-unified-db.git

@@ -9,6 +9,9 @@ From: ubuntu:24.04
 %post
   export DEBIAN_FRONTEND=noninteractive
 
+  # Create a non-root user
+  useradd -m -s /bin/bash vscode
+
   apt-get update
 
   # please keep pkgs sorted
@@ -18,6 +21,7 @@ From: ubuntu:24.04
     clang-format \
     clang-tidy \
     cmake \
+    curl \
     ditaa \
     g++ \
     gcc-riscv64-linux-gnu \
@@ -41,10 +45,22 @@ From: ubuntu:24.04
     ruby-dev \
     shellcheck
 
-# cleanup
+  # Configure pip to avoid externally-managed-environment error (PEP 668)
+  # Create a virtual environment and install Python requirements
+  python3 -m venv /opt/venv
+  export PATH="/opt/venv/bin:$PATH"
+  
+  # Install Python dependencies
+  pip install pre_commit==4.0.1 jsonschema==4.23.0 tqdm==4.67.1 reuse==5.0.2 ruamel.yaml==0.18.6 mergedeep==1.3.4 pytest==8.3.4
+
+  # cleanup
   apt-get clean autoclean
   apt-get autoremove -y
   rm -rf /var/lib/{apt, dpkg, cache, log}
+
+  # Switch to non-root user
+  USER vscode
+  WORKDIR /home/vscode
 
   # cd $HOME
   # bundle install

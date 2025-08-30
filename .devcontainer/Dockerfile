@@ -7,7 +7,11 @@ RUN useradd -m -s /bin/bash vscode
 
 WORKDIR /workspace
 
-RUN export DEBIAN_FRONTEND=noninteractive
+# Configure apt proxy settings if proxy environment variables are set
+RUN if [ -n "$http_proxy" ] || [ -n "$https_proxy" ]; then \
+      echo "Acquire::http::Proxy \"$http_proxy\";" > /etc/apt/apt.conf.d/01proxy; \
+      echo "Acquire::https::Proxy \"$https_proxy\";" >> /etc/apt/apt.conf.d/01proxy; \
+    fi
 
 # please keep pkgs sorted
 RUN \
@@ -42,10 +46,27 @@ RUN \
     ruby-dev \
     shellcheck
 
+# Configure pip proxy settings
+RUN if [ -n "$http_proxy" ] || [ -n "$https_proxy" ]; then \
+      echo "[global]" > /etc/pip.conf; \
+      if [ -n "$http_proxy" ]; then echo "proxy = $http_proxy" >> /etc/pip.conf; fi; \
+      if [ -n "$https_proxy" ]; then echo "trusted-host = pypi.org" >> /etc/pip.conf; \
+                                         echo "trusted-host = pypi.python.org" >> /etc/pip.conf; \
+                                         echo "trusted-host = files.pythonhosted.org" >> /etc/pip.conf; fi; \
+    fi
+
+# Configure npm proxy settings
+RUN if [ -n "$http_proxy" ]; then npm config set proxy $http_proxy; fi
+RUN if [ -n "$https_proxy" ]; then npm config set https-proxy $https_proxy; fi
+
+# Configure bundler proxy settings
+RUN if [ -n "$http_proxy" ]; then bundle config http_proxy $http_proxy; fi
+RUN if [ -n "$https_proxy" ]; then bundle config https_proxy $https_proxy; fi
+
 # Create a virtual environment and install Python requirements
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install -r /workspace/requirements.txt
+RUN pip install pre_commit==4.0.1 jsonschema==4.23.0 tqdm==4.67.1 reuse==5.0.2 ruamel.yaml==0.18.6 mergedeep==1.3.4 pytest==8.3.4
 
 RUN apt-get clean autoclean
 RUN apt-get autoremove -y
