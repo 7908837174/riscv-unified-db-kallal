@@ -39,6 +39,26 @@ jobs:
           chmod +x tests/container_tests.sh
           ./tests/container_tests.sh
 
+      - name: Test docker-compose with proxy
+        run: |
+          if [ "${{ matrix.proxy }}" = "with-proxy" ]; then
+            echo "Testing docker-compose with proxy"
+            # Start services with docker-compose
+            docker-compose up -d
+            # Wait for services to start
+            sleep 10
+            # Check if services are running
+            docker-compose ps
+            # Stop services
+            docker-compose down
+          else
+            echo "Testing docker-compose without proxy"
+            docker-compose up -d
+            sleep 10
+            docker-compose ps
+            docker-compose down
+          fi
+
       - name: Test VS Code integration
         run: |
           # Skip this test for now as it's not essential for the build

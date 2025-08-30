@@ -41,12 +41,22 @@ docker run --rm riscv-unified-db-test id -u vscode
 
 # Test 8: Proxy configuration test
 echo "Test 8: Checking proxy configuration..."
-if [ -n "$http_proxy" ] || [ -n "$https_proxy" ]; then
-    echo "Proxy is configured: HTTP_PROXY=$http_proxy, HTTPS_PROXY=$https_proxy"
-    # Test proxy connectivity if configured
-    docker run --rm -e http_proxy -e https_proxy riscv-unified-db-test env | grep -i proxy
-else
-    echo "No proxy configured"
-fi
+docker run --rm -e http_proxy=http://test.proxy:3128 -e https_proxy=http://test.proxy:3128 riscv-unified-db-test bash -c "env | grep -i proxy"
+
+# Test 9: Check apt proxy configuration
+echo "Test 9: Checking apt proxy configuration..."
+docker run --rm -e http_proxy=http://test.proxy:3128 riscv-unified-db-test bash -c "if [ -f /etc/apt/apt.conf.d/01proxy ]; then cat /etc/apt/apt.conf.d/01proxy; else echo 'No apt proxy configuration found'; fi"
+
+# Test 10: Check pip proxy configuration
+echo "Test 10: Checking pip proxy configuration..."
+docker run --rm -e http_proxy=http://test.proxy:3128 riscv-unified-db-test bash -c "if [ -f /etc/pip.conf ]; then cat /etc/pip.conf; else echo 'No pip proxy configuration found'; fi"
+
+# Test 11: Check npm proxy configuration
+echo "Test 11: Checking npm proxy configuration..."
+docker run --rm -e http_proxy=http://test.proxy:3128 riscv-unified-db-test bash -c "npm config get proxy || echo 'No npm proxy configured'"
+
+# Test 12: Check bundler proxy configuration
+echo "Test 12: Checking bundler proxy configuration..."
+docker run --rm -e http_proxy=http://test.proxy:3128 riscv-unified-db-test bash -c "bundle config http_proxy || echo 'No bundler proxy configured'"
 
 echo "All container tests passed!"
