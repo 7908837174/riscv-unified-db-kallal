@@ -19,10 +19,23 @@ services:
       - HTTP_PROXY=${HTTP_PROXY:-http://proxy:3128}
       - HTTPS_PROXY=${HTTPS_PROXY:-http://proxy:3128}
     depends_on:
-      - proxy
+      proxy:
+        condition: service_healthy
 
   proxy:
     image: sameersbn/squid:latest
     ports:
       - "3128:3128"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "netstat -tulpn | grep LISTEN | grep 3128 || nc -z localhost 3128"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    # Install netstat if missing (for the healthcheck)
+    command: >
+      bash -c "apt-get update -qq &&
+               apt-get install -y -qq net-tools &&
+               /sbin/entrypoint.sh"
     # Using default bridge network
