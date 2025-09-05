@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 # SPDX-FileCopyrightText: Copyright (c) 2025 RISC-V International
 
-version: '3.8'
+version: "3.8"
 
 services:
   dev:
